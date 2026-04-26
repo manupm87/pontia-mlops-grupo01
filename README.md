@@ -1,9 +1,15 @@
 # MLOps - Modelo de Predicción de Ingresos (Adult Income)
 
+[![Build](https://github.com/manupm87/pontia-mlops-grupo01/actions/workflows/build.yml/badge.svg)](https://github.com/manupm87/pontia-mlops-grupo01/actions/workflows/build.yml)
+[![Integration](https://github.com/manupm87/pontia-mlops-grupo01/actions/workflows/integration.yml/badge.svg)](https://github.com/manupm87/pontia-mlops-grupo01/actions/workflows/integration.yml)
+[![Deploy Model](https://github.com/manupm87/pontia-mlops-grupo01/actions/workflows/deploy.yml/badge.svg)](https://github.com/manupm87/pontia-mlops-grupo01/actions/workflows/deploy.yml)
+
 ## 👥 Integrantes del Grupo
-* [TU NOMBRE Y APELLIDO]
+* Manuel Pérez Martínez
 * [NOMBRE DEL INTEGRANTE 2]
 * [NOMBRE DEL INTEGRANTE 3]
+* [NOMBRE DEL INTEGRANTE 4]
+* [NOMBRE DEL INTEGRANTE 5]
 
 ## 📌 Enlaces del Proyecto
 - **Render deployment**: [https://pontia-mlops-tutorial-manuel-perez.onrender.com/docs](https://pontia-mlops-tutorial-manuel-perez.onrender.com/docs)
