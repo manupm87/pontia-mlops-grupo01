@@ -1,0 +1,22 @@
+# Exported from Render on 2026-04-26T15:53:45Z
+version: "1"
+projects:
+- name: My project
+  environments:
+  - name: Production
+    services:
+    - type: web
+      name: pontia-mlops-tutorial-manuel-perez
+      runtime: python
+      repo: https://github.com/manupm87/pontia-mlops-grupo01
+      plan: free
+      envVars:
+      - key: GITHUB_TOKEN
+        sync: false
+      - key: GITHUB_REPO
+        sync: false
+      region: frankfurt
+      buildCommand: pip install -r requirements.txt
+      startCommand: uvicorn app.main:app --host 0.0.0.0 --port 8080
+      autoDeployTrigger: commit
+      rootDir: deployment
