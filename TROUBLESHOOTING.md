@@ -2,10 +2,10 @@
 
 Documentación de los principales problemas técnicos encontrados durante el desarrollo y sus respectivas soluciones.
 
-### 1. Incompatibilidad de versión de Python en el entorno local
-**Síntoma:** Fallo al instalar dependencias (`fastapi==0.104.1`) devolviendo error por incompatibilidad (3.7.8 < 3.8).
-**Causa:** El entorno virtual autogenerado utilizaba Python 3.7.8, incompatíble con las versiones modernas de FastAPI exigidas en `requirements.txt`.
-**Solución:** Se forzó explícitamente a `uv` a descargar y enlazar Python 3.10 para inicializar el contenedor virtual: `uv python install 3.10` y `uv venv --python 3.10 .venv`.
+### 1. Incompatibilidad de versión de Python en local y cloud
+**Síntoma:** Fallo transaccional al instalar dependencias de despliegue rápido (`fastapi==0.104.1`), retornando error fatal nativo por incompatibilidad estricta de base (3.7.8 < 3.8).
+**Causa:** El ecosistema de intérprete subyacente (tanto en la máquina de desarrollo como en los "builders" originales de Render) apuntaba a `Python 3.7.8`, versión obsoleta sin soporte para la capa asíncrona moderna de dependencias.
+**Solución:** Se ejecutó una estrategia de _Pinning_ de infraestructura. A nivel de Integración en el repositorio, se versionó estáticamente el archivo raíz `.python-version` forzando la directiva `3.10`. De forma inherente, esto forzó a los motores de aprovisionamiento del servidor remoto de Render a instanciar contenedores de dicha versión moderna, mitigando cualquier colapso al cargar y evaluar el `requirements.txt`.
 
 ### 2. Error 403 (Rate Limit) de la API de GitHub en Render
 **Síntoma:** Caída de la aplicación en Render durante el arranque con `requests.exceptions.HTTPError: 403 Client Error: rate limit exceeded` intentando comunicarse con `api.github.com/repos/.../releases/latest`.

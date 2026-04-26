@@ -25,6 +25,7 @@ El repositorio está organizado de la siguiente manera:
 * **`deployment/`**: Contiene el código de la API basada en FastAPI (`app/main.py`) para servir las predicciones del modelo. Esta carpeta actúa como Raíz para el servidor de producción.
 * **`model_tests/`**: Pruebas automáticas y validaciones enfocadas sobre el comportamiento del modelo.
 * **`unit_tests/`**: Pruebas unitarias parametrizadas (con `pytest`) para asegurar la lógica del código y transformaciones (`src` y `deployment`).
+* **`.python-version`**: Archivo de especificación global que fija la versión del intérprete de Python (3.10) para garantizar compatibilidad multiplataforma y forzar al _builder_ nativo de Render a utilizar utilidades modernas.
 * **`render.yaml`**: Archivo Blueprint ("Infrastructure as Code") que define todos los parámetros del servicio, comandos de construcción y variables de entorno para automatizar completamente el servidor Render.
 
 ## 🚀 Funcionamiento
@@ -37,16 +38,65 @@ El repositorio está organizado de la siguiente manera:
 
 1. Clonar el repositorio.
 2. Ir al directorio de despliegue: `cd deployment`
-3. Crear un entorno e instalar dependencias usando `uv`:
+3. Crear un entorno virtual e instalar las dependencias con `pip` y `python` nativo:
    ```bash
-   uv venv --python 3.10 .venv
+   python3 -m venv .venv
    source .venv/bin/activate
-   uv pip install -r requirements.txt
+   pip install -r requirements.txt
    ```
 4. Ejecutar la API:
    ```bash
    uvicorn app.main:app --reload
    ```
+
+## 🧪 Ejemplos de Inferencia (Testeo)
+
+Puedes probar la API desde cualquier terminal (o apuntando localmente a tu URL de Render) enviando estas consultas para simular ambos escenarios posibles soportados por el modelo RandomForest:
+
+**Escenario 1: Predicción de Ingreso <= 50K (Retorna `[0]`)**
+```bash
+curl -X POST https://pontia-mlops-tutorial-manuel-perez.onrender.com/predict \
+-H "Content-Type: application/json" \
+-d '{
+  "age": 39,
+  "workclass": "State-gov",
+  "fnlwgt": 77516,
+  "education": "Bachelors",
+  "education-num": 13,
+  "marital-status": "Never-married",
+  "occupation": "Adm-clerical",
+  "relationship": "Not-in-family",
+  "race": "White",
+  "sex": "Male",
+  "capital-gain": 2174,
+  "capital-loss": 0,
+  "hours-per-week": 40,
+  "native-country": "United-States"
+}'
+```
+
+**Escenario 2: Predicción de Ingreso > 50K (Retorna `[1]`)**
+```bash
+curl -X POST https://pontia-mlops-tutorial-manuel-perez.onrender.com/predict \
+-H "Content-Type: application/json" \
+-d '{
+  "age": 52,
+  "workclass": "Private",
+  "fnlwgt": 209642,
+  "education": "Masters",
+  "education-num": 14,
+  "marital-status": "Married-civ-spouse",
+  "occupation": "Exec-managerial",
+  "relationship": "Husband",
+  "race": "White",
+  "sex": "Male",
+  "capital-gain": 15024,
+  "capital-loss": 0,
+  "hours-per-week": 50,
+  "native-country": "United-States"
+}'
+```
+*(Nota: Si ejecutas la instancia en local, simplemente remplaza la URL de Render por `http://127.0.0.1:8000/predict`)*
 
 ## ⏪ Simulación de Rollback (Proceso documentado)
 
