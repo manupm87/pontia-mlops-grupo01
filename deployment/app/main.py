@@ -31,7 +31,13 @@ async def lifespan(app: FastAPI):
         
         # Download latest release from GitHub
         logger.info(f"Fetching latest release from {github_repo}...")
-        response = requests.get(f"https://api.github.com/repos/{github_repo}/releases/latest")
+        
+        headers = {"Accept": "application/vnd.github.v3+json"}
+        github_token = os.getenv("GITHUB_TOKEN")
+        if github_token:
+            headers["Authorization"] = f"token {github_token}"
+            
+        response = requests.get(f"https://api.github.com/repos/{github_repo}/releases/latest", headers=headers)
         response.raise_for_status()
         release = response.json()
         
