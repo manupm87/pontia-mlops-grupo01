@@ -1,25 +1,28 @@
-# Troubleshooting & Resolución de Problemas
+# Troubleshooting
 
-Este documento detalla los problemas encontrados durante el desarrollo y despliegue del proyecto y cómo fueron resueltos empíricamente, con el fin de aportar valor documental, compartir aprendizajes y evitar futuros bloqueos del equipo.
+Documentación de los principales problemas técnicos encontrados durante el desarrollo y sus respectivas soluciones.
 
-### Problema 1: Incompatibilidad de versión de Python con herramientas modernas (Local)
-**Síntoma:** Al intentar instalar dependencias orientadas al despliegue (`fastapi==0.104.1`) con `uv pip install -r requirements.txt`, el comando falló devolviendo el error `Because the current Python version (3.7.8) does not satisfy Python>=3.8... your requirements are unsatisfiable.`
-**Causa:** El entorno virtual por defecto de la máquina, o el entorno autogenerado por el manejador, estaba utilizando Python 3.7.8, el cual es muy antiguo y ya no es soportado por versiones recientes de FastAPI y Pydantic V2.
-**Solución:** Se forzó al manejador de paquetes moderno (`uv`) a preparar explícitamente y utilizar una versión actual de Python durante la creación del entorno virtual con los comandos:
-`uv python install 3.10`
-`uv venv --python 3.10 .venv`
+### 1. Incompatibilidad de versión de Python en el entorno local
+**Síntoma:** Fallo al instalar dependencias (`fastapi==0.104.1`) devolviendo error por incompatibilidad (3.7.8 < 3.8).
+**Causa:** El entorno virtual autogenerado utilizaba Python 3.7.8, incompatíble con las versiones modernas de FastAPI exigidas en `requirements.txt`.
+**Solución:** Se forzó explícitamente a `uv` a descargar y enlazar Python 3.10 para inicializar el contenedor virtual: `uv python install 3.10` y `uv venv --python 3.10 .venv`.
 
-### Problema 2: Error 403 (Rate Limit Exceeded) de GitHub en Producción (Render)
-**Síntoma:** Localmente en la PC de desarrollo, la API funcionaba sin problemas y lograba descargar el modelo compilado (.pkl) desde el Release de GitHub. Sin embargo, al desplegarla exitosamente en Render, la API rompía en tiempo de ejecución lanzando el error `requests.exceptions.HTTPError: 403 Client Error: rate limit exceeded for url: https://api.github.com/.../releases/latest` y la aplicación se colgaba.
-**Causa:** La API utilizaba un HTTP Request completamente anónimo (sin headers de auth) para consultar la información del "Latest Release". GitHub limita severamente las peticiones no autenticadas a solo **60 peticiones por hora por dirección IP**. Como Render es un PaaS compartido, la dirección IP pública de salida es idéntica para miles de contenedores de otros usuarios, por lo que el limitado cupo de 60 request se consumía instantáneamente por "vecinos ruidosos".
-**Solución:** Se modificó en el código fuente `app/main.py` la lectura dinámica de una variable de entorno `GITHUB_TOKEN` para inyectarla como un Authentication Header (`headers["Authorization"] = f"token {github_token}"`). Se provisionó un Personal Access Token de GitHub clásico (sin scopes perjudiciales) directamente en la configuración segura de Render, incrementando el límite de la API dramáticamente a **5.000 peticiones por hora**, mitigando instantáneamente el problema del servidor compartido.
+### 2. Error 403 (Rate Limit) de la API de GitHub en Render
+**Síntoma:** Caída de la aplicación en Render durante el arranque con `requests.exceptions.HTTPError: 403 Client Error: rate limit exceeded` intentando comunicarse con `api.github.com/repos/.../releases/latest`.
+**Causa:** La aplicación efectuaba la llamada a la red localmente de manera anónima. Render opera con IPs compartidas; consecuentemente, el límite de 60 request/hora unificado por IP se consumía rápidamente debido a la latencia de peticiones en la red del servicio PaaS.
+**Solución:** Se procedió a aprovisionar un Personal Access Token de GitHub, inyectándose paramétricamente a nivel global en Render e interceptándose en el script vía `os.getenv("GITHUB_TOKEN")` anexándolo al HTTP Header `Authorization`. Esto amplió el límite operacional a 5.000 requests.
 
-### Problema 3: UI Autónoma (Swagger /docs) no mostraba el Input Body
-**Síntoma:** Al ingresar a baseural/docs para probar el endpoint `POST /predict`, la interfaz interactiva de Swagger documentaba el endpoint pero se visualizaba vacía (sin formulario parametrizado), imposibilitando testing manual con click de botón.
-**Causa:** El endpoint `/predict` recibía el HTTP Request de manera tipada genérica nativa (`request: Request`) resolviéndola dinámicamente con `await request.json()`. FastAPI no puede inferir programáticamente qué tipo o nombre de variables van por el cable, impidiéndole redactar un esquema autogenerado (`schema.json`).
-**Solución (Workaround):** Para priorizar y mantener la máxima flexibilidad y compatibilidad hacia atrás de nuestra API en su estado de despliegue original, decidimos conservar el parseo dinámico con `request: Request`. En lugar de alterar sustancialmente el código fuente de la aplicación con modelos rígidos de Pydantic solo para satisfacer la interfaz de `/docs`, adaptamos nuestro flujo de testing. Realizamos nuestras pruebas de inferencia validando la arquitectura mediante el consumo directo de la respueta JSON utilizando herramientas REST nativas vía consola (`curl`) y la utilización de clientes avanzados como **Postman**, supliendo la utilidad visual de Swagger eficazmente y sin tocar el código base.
+### 3. Swagger UI sin generación de FormData (/docs)
+**Síntoma:** La interfaz gráfica autogenerada en el endpoint reservado `/docs` omitía parcial o totalmente la redondancia de Payload properties para probar `POST /predict`.
+**Causa:** El enrutador de FastAPI manejaba las cargas bajo el tipo genérico nativo `request: Request`, impidiendo a OpenAPI inferir programáticamente las tuplas requeridas para esquematizar un JSON validado.
+**Solución:** Se definió no penalizar la flexibilidad estricta de la aplicación insertando la lógica de validación extra de `pydantic`. La omisión se salvaguardó migrando la dinámica de testing interactivo a herramientas exclusivas REST como `curl` y Postman usando los Payloads crudos pertinentes.
 
-### Problema 4: Error "404 Not Found" en GitHub Actions al reportar resultados
-**Síntoma:** Al disparar manualmente la pipeline de integración desde la pestaña de Actions (`workflow_dispatch`), los tests pasaban correctamente, pero la pipeline terminaba "Rota" (en rojo) porque el paso final de realizar un comentario fallaba con el error fatal `HttpError: Not Found` intentando acceder a la API `issues//comments`.
-**Causa:** El script encargado de publicar los resultados dependía del identificador `context.issue.number` para saber en qué Pull Request dejar el mensaje. Como la ejecución fue lanzada manualmente de manera asíncrona, no había ninguna PR asociada en el contexto, provocando que se generara una URL incompleta o vacía en el Request.
-**Solución:** Se analizó el flujo de despliegue continuo y se concluyó que lo más idiomático y eficiente para evitar descargas en vano del contenedor de Node.js, era bloquear el paso completamente en la infraestructura del YAML. Modificamos el condicional del paso en `integration.yml` empleando `if: always() && github.event_name == 'pull_request'`. El uso de `always()` preserva y garantiza firmemente que los resultados se publiquen aunque los tests aborten, y la evaluación de `event_name` silencia eficientemente la ejecución para reportar un verde impecable cuando el desarrollo se inspecciona manualmente por fuera de un PR.
+### 4. Code 404 (Not Found) emitido en el CI de validación (GitHub Actions)
+**Síntoma:** Al lanzar la pipeline `.github/workflows/integration.yml` bajo la condición en demanda manual (`workflow_dispatch`), los unit tests prosperaban pero la propagación de comentarios retornaba un Fatal `HttpError: Not Found` sobre la ruta unida  `issues//comments`.
+**Causa:** El script nativo invocaba la propiedad inherente `context.issue.number` para orquestar dónde propagar el log de cobertura. Al ser invocado manualmente, la Action carece de un contexto asociado originario de *Pull Request*, insertando de manera subyacente un escalar indefinido.
+**Solución:** Para preservar eficiencia de cómputo, se omitió un "workaround" directo alterando el script subyacente, y se bloqueó sistemáticamente el paso acoplando la restricción binaria estricta de tipo en el macro del _step_: `if: always() && github.event_name == 'pull_request'`.
+
+### 5. Inyección ineficiente del GITHUB_TOKEN en `deploy.yml`
+**Síntoma:** Existencia de líneas `env: GITHUB_TOKEN...` insertadas debajo del paso del webhook manual dentro del archivo de GitHub Actions.
+**Causa:** Presunción errónea del alcance local. Empacar las variables de entorno dentro del block level de Actions asigna dicho secreto al _shell local_, sin embargo el comando delegado (`curl -X POST`) es ajeno a este Scope en el Request saliente si no se implementa activamente dentro de Headers explícitos.
+**Solución:** Eliminación del bloque ineficiente. La responsabilidad de los credenciales de aprovisionación estricta hacia Render se encapsularon unitariamente dentro del `render.yaml` o directamente en el _Dashboard_.
