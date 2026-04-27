@@ -8,8 +8,8 @@
 * Manuel Pérez Martínez
 * Jose Alexander De Sousa
 * [NOMBRE DEL INTEGRANTE 3]
-* [NOMBRE DEL INTEGRANTE 4]
-* [NOMBRE DEL INTEGRANTE 5]
+* [Joaquin Castro Salas]
+* Enmanuel Alejandro De Oleo Ubiera
 
 ## 📌 Enlaces del Proyecto
 - **Render deployment**: [https://pontia-mlops-tutorial-manuel-perez.onrender.com/docs](https://pontia-mlops-tutorial-manuel-perez.onrender.com/docs)
