@@ -6,7 +6,7 @@
 
 ## 👥 Integrantes del Grupo
 * Manuel Pérez Martínez
-* [NOMBRE DEL INTEGRANTE 2]
+* Jose Alexander De Sousa
 * [NOMBRE DEL INTEGRANTE 3]
 * [NOMBRE DEL INTEGRANTE 4]
 * [NOMBRE DEL INTEGRANTE 5]
