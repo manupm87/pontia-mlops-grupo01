@@ -9,7 +9,7 @@
 * [NOMBRE DEL INTEGRANTE 2]
 * [NOMBRE DEL INTEGRANTE 3]
 * [Joaquin Castro Salas]
-* [NOMBRE DEL INTEGRANTE 5]
+* Enmanuel Alejandro De Oleo Ubiera
 
 ## 📌 Enlaces del Proyecto
 - **Render deployment**: [https://pontia-mlops-tutorial-manuel-perez.onrender.com/docs](https://pontia-mlops-tutorial-manuel-perez.onrender.com/docs)
