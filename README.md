@@ -6,7 +6,7 @@
 
 ## 👥 Integrantes del Grupo
 * Manuel Pérez Martínez
-* [NOMBRE DEL INTEGRANTE 2]
+* Jose Alexander De Sousa
 * [NOMBRE DEL INTEGRANTE 3]
 * [Joaquin Castro Salas]
 * Enmanuel Alejandro De Oleo Ubiera
