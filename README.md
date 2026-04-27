@@ -8,7 +8,7 @@
 * Manuel Pérez Martínez
 * [NOMBRE DEL INTEGRANTE 2]
 * [NOMBRE DEL INTEGRANTE 3]
-* [NOMBRE DEL INTEGRANTE 4]
+* [Joaquin Castro Salas]
 * Enmanuel Alejandro De Oleo Ubiera
 
 ## 📌 Enlaces del Proyecto
