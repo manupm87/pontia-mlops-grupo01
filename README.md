@@ -7,8 +7,8 @@
 ## 👥 Integrantes del Grupo
 * Manuel Pérez Martínez
 * Jose Alexander De Sousa
-* [NOMBRE DEL INTEGRANTE 3]
-* [Joaquin Castro Salas]
+* Marvin Farith Bernal
+* Joaquin Castro Salas
 * Enmanuel Alejandro De Oleo Ubiera
 
 ## 📌 Enlaces del Proyecto
